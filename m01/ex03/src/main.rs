@@ -1,6 +1,6 @@
 fn check_in(big: &[u32], small: &[u32]) -> bool {
-	for i in small {
-		if !big.contains(i) {return false;}
+	for i in big {
+		if !small.contains(i) {return false;}
 	}
 	true
 }
@@ -10,6 +10,7 @@ fn largest_group<'a, 'b>(haystack: &'a [u32], needle: &'b [u32]) -> &'a [u32] {
 	for i in (1..haystack.len()).rev() {
 		let mut start = 0;
 		while start + i < haystack.len() {
+			// println!("Debug loop {:#?}", &haystack[start..=(start + i)]);
 			if check_in(&haystack[start..=(start + i)], needle) {return &haystack[start..=(start + i)];}
 			start += 1;
 		}
