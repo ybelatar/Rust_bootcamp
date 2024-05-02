@@ -1,7 +1,7 @@
-// fn max(a: usize, b: usize) -> usize {
-// 	if a > b {a}
-// 	else {b}
-// }
+fn max(a: usize, b: usize) -> usize {
+	if a > b {a}
+	else {b}
+}
 
 fn to_num(a: u8) -> u8 {
 	a - b'0'
@@ -12,13 +12,18 @@ fn to_ascii(a: u8) -> u8 {
 }
 
 fn big_add(a: &[u8], b: &[u8]) -> Vec<u8> {
-	let mut res: Vec<u8> = vec![];
 	assert!(!a.is_empty() && !b.is_empty());
+
+	let mut res: Vec<u8> = Vec::new();
 	let mut carry = 0;
-	for i in (0..a.len()).rev() {
-		assert!(a[i].is_ascii_digit() && b[i].is_ascii_digit());
-		println!("a {} ,b {}", a[i], b[i]);
-		match to_num(a[i]) + to_num(b[i]) + carry {
+
+	let maximum = max(a.len(), b.len());
+	for i in 1..=maximum {
+		let abis = if a.len() >= i {a[a.len() - i]} else {b'0'};
+		let bbis = if b.len() >= i {b[b.len() - i]} else {b'0'};
+		assert!(abis.is_ascii_digit() && bbis.is_ascii_digit());
+		println!("a {} ,b {}", abis, bbis);
+		match to_num(abis) + to_num(bbis) + carry {
 			num if num > 9 => {
 				carry = 1;
 				res.push(to_ascii(num - 10));
@@ -29,8 +34,9 @@ fn big_add(a: &[u8], b: &[u8]) -> Vec<u8> {
 			}
 		}
 	}
+	if carry == 1 {res.push(b'1');}
 	res.reverse();
-	while res[0] == b'0' {res.remove(0);}
+	while res[0] == b'0' && res.len() > 1 {res.remove(0);}
 	res
 }
 
@@ -38,20 +44,67 @@ fn big_add(a: &[u8], b: &[u8]) -> Vec<u8> {
 
 
 fn main() {
-    println!("{:?}", big_add(b"125", b"125"));
+    println!("{:?}", big_add(b"0", b"0"));
 }
 
 
 #[cfg(test)]
 #[test]
-fn test1() {assert_eq!(big_add(b"2", b"4"), b"6");}
-#[test]
-fn test2() {assert_eq!(big_add(b"0010", b"0200"), b"210");}
-#[test]
-fn test3() {assert_eq!(big_add(b"125", b"125"), b"250");}
-#[test]
-#[should_panic]
-fn test_panic1() {assert_eq!(big_add(b"a2", b"40"), b"6");}
+fn zero_plus_zero() {
+    assert_eq!(big_add(b"0", b"0"), b"0");
+}
+
+#[cfg(test)]
 #[test]
 #[should_panic]
-fn test_panic2() {assert_eq!(big_add(b"", b"40"), b"6");}
+fn empty_string() {
+    assert_eq!(big_add(b"", b"123"), b"");
+}
+
+#[cfg(test)]
+#[should_panic]
+#[test]
+fn non_digits() {
+    assert_eq!(big_add(b"abc", b"123"), b"");
+}
+
+#[cfg(test)]
+#[test]
+fn basic_add() {
+    assert_eq!(big_add(b"1", b"1"), b"2");
+    assert_eq!(big_add(b"10", b"1"), b"11");
+    assert_eq!(big_add(b"100", b"23"), b"123");
+}
+
+#[cfg(test)]
+#[test]
+fn middle_carry() {
+    assert_eq!(big_add(b"1", b"19"), b"20");
+    assert_eq!(big_add(b"5", b"18"), b"23");
+}
+
+#[cfg(test)]
+#[test]
+fn end_carry() {
+    assert_eq!(big_add(b"9", b"1"), b"10");
+    assert_eq!(big_add(b"9", b"3"), b"12");
+    assert_eq!(big_add(b"900", b"100"), b"1000");
+}
+
+#[cfg(test)]
+#[test]
+fn full_carry() {
+    assert_eq!(big_add(b"999", b"1"), b"1000");
+}
+
+#[cfg(test)]
+#[test]
+fn huge_numbers() {
+    assert_eq!(
+        big_add(
+            b"100000000000000000000000000000000",
+            b"100000000000000000000000000000000"
+        ),
+        b"200000000000000000000000000000000"
+    );
+}
